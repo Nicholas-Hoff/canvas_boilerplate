@@ -1,0 +1,22 @@
+/* show 100×100px gridlines */
+.grid-canvas {
+    background-image:
+      linear-gradient(to right, #ddd 1px, transparent 1px),
+      linear-gradient(to bottom, #ddd 1px, transparent 1px);
+    background-size: 35px 35px;
+  }
+/* Make each RGL item‐content fill its cell, center its child, and never scroll */
+.react-grid-item > .item-content {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background:transparent !important;
+}
+
+/* Make the overall grid container transparent */
+.react-grid-layout {
+  background-color: transparent !important;
+}
