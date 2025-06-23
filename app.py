@@ -6,6 +6,16 @@ import dash_bootstrap_components as dbc
 from dash_draggable import ResponsiveGridLayout
 from dash.exceptions import PreventUpdate
 
+CANVAS_BASE_STYLE = {
+    "position": "absolute",
+    "top": "136px",
+    "left": 0,
+    "width": "100%",
+    "height": "calc(100vh - 136px)",
+    "overflow": "hidden",
+    "backgroundColor": "transparent",
+}
+
 # ----------------------------------------------------------------------------- 
 # App setup
 # ----------------------------------------------------------------------------- 
@@ -84,9 +94,7 @@ def create_sidebar():
     )
 
 def create_canvas():
-    """
-    Responsive grid that accepts external drops.
-    """
+    """Responsive grid that accepts external drops."""
     return ResponsiveGridLayout(
         id="canvas-layout",
         children=[],
@@ -106,15 +114,7 @@ def create_canvas():
         gridCols={                # 36 cells across
             "lg":36, "md":36, "sm":36, "xs":36, "xxs":36
         },
-        style={
-            "position": "absolute",
-            "top": "136px",
-            "left": 0,
-            "width": "100%",
-            "height": "calc(100vh - 136px)",
-            "overflow": "hidden",
-            "backgroundColor": "transparent",
-        },
+        style=CANVAS_BASE_STYLE,
     )
 
 
@@ -165,6 +165,8 @@ def render_tab_content(active_tab):
                         src=item["src"],
                         style={"width": "40px", "height": "40px"},
                     ),
+                    id={"type": "source-icon", "source": item["id"]},
+                    n_clicks=0,
                     **{
                         "draggable": True,
                         "data-node-type": item["id"],
@@ -195,10 +197,11 @@ def add_source_node(n_clicks, data):
     triggered = callback_context.triggered[0]["prop_id"].split('.')[0]
     source = json.loads(triggered)["source"]
     idx = len(data)
+    x, y = find_next_position(data, 0, 0, cols=36)
     return data + [{
         "id": f"node-{idx+1}",
         "type": source,
-        "layout": {"x": idx%12, "y": 0, "w":1, "h":1},
+        "layout": {"x": x, "y": y, "w":1, "h":1},
     }]
 
 @app.callback(
@@ -264,12 +267,19 @@ def render_nodes(nodes):
 
 @app.callback(
     Output("sidebar-collapse", "is_open"),
+    Output("canvas-layout", "style"),
     Input({"type":"canvas-node","pid":ALL}, "n_clicks"),
     State("sidebar-collapse", "is_open"),
     prevent_initial_call=True,
 )
 def toggle_sidebar(n_clicks, is_open):
-    return any(n_clicks)
+    if not any(n_clicks):
+        raise PreventUpdate
+    new_state = not is_open
+    style = CANVAS_BASE_STYLE.copy()
+    if new_state:
+        style["left"] = "20%"
+    return new_state, style
 
 # ----------------------------------------------------------------------------- 
 # Run
